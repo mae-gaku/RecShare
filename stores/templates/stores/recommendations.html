@@ -1,0 +1,27 @@
+<!-- templates/recommendations.html -->
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ store.name }} のおすすめ店舗</title>
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+</head>
+<body>
+    <header>
+        <h1>{{ store.name }} のおすすめ店舗</h1>
+    </header>
+    <main>
+        <div class="recommendations-list">
+            {% for recommended_store in recommended_stores %}
+            <div class="recommended-store">
+                <a href="{% url 'store_detail' recommended_store.id %}">
+                    <h2>{{ recommended_store.name }}</h2>
+                    <p>{{ recommended_store.description }}</p>
+                </a>
+            </div>
+            {% endfor %}
+        </div>
+    </main>
+</body>
+</html>

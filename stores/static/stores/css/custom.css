@@ -1,0 +1,88 @@
+/* stores/static/stores/css/custom.css */
+
+/* Basic styling for the body */
+body {
+    font-family: 'Arial', sans-serif;
+    background-color: #f8f9fa;
+}
+
+/* Styling for card components */
+.card {
+    border: none;
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+.card-title {
+    font-size: 1.5rem;
+    margin-bottom: 0.5rem;
+}
+
+.card-text {
+    font-size: 1rem;
+    color: #6c757d;
+}
+
+/* Navigation bar and footer */
+.navbar {
+    margin-bottom: 1rem;
+}
+
+/* stores/static/stores/css/custom.css */
+
+/* Footer Navigation Bar */
+.nav-link {
+    text-align: center;
+}
+
+.nav-link i {
+    font-size: 1.5rem;
+    display: block;
+}
+
+/* stores/css/custom.css */
+/* stores/css/custom.css */
+
+/* フッターのナビゲーションバーのスタイル */
+.footer {
+    background-color: #f8f9fa; /* 明るい背景色 */
+    border-top: 1px solid #e9ecef; /* 上部に薄い境界線 */
+    padding: 0; /* パディングを削除 */
+    height: 60px; /* フッターの高さを調整 */
+    position: fixed; /* 画面の下に固定 */
+    bottom: 0; /* 画面の下に位置を固定 */
+    width: 100%; /* フッターの幅を画面全体に */
+    z-index: 999; /* 他の要素の上に表示 */
+}
+
+/* ナビゲーションリストを横並びに */
+.footer .navbar-nav {
+    display: flex;
+    justify-content: space-around;
+    width: 100%;
+    padding: 0;
+    margin: 0;
+    list-style: none; /* デフォルトのリストスタイルを削除 */
+}
+
+/* アイコンのスタイル */
+.footer .nav-link {
+    font-size: 1.5rem; /* アイコンのサイズを調整 */
+    color: #007bff; /* アイコンの色を設定 */
+    padding: 0.5rem; /* アイコンの周りにスペースを追加 */
+    text-align: center; /* テキストを中央寄せ */
+    display: flex; /* アイコンの中央寄せ */
+    align-items: center; /* アイコンの縦方向の中央寄せ */
+    justify-content: center; /* アイコンの横方向の中央寄せ */
+}
+
+/* アイコンのホバー時のスタイル */
+.footer .nav-link:hover {
+    color: #0056b3; /* ホバー時のアイコンの色 */
+}
+
+/* アイコンの縦方向の調整 */
+.footer .nav-link i {
+    display: block;
+    margin: auto;
+}

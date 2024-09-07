@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    {% load static %}
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="{% static 'stores/css/style.css' %}">
+    <title>App Home</title>
+    <style>
+        body {
+            font-family: 'Helvetica Neue', Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f4f4;
+            color: #333;
+            overflow-x: hidden; /* 横スクロールを隠す */
+        }
+
+        .menu-icon {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            cursor: pointer;
+            z-index: 1000;
+        }
+
+        .menu-icon .bar {
+            width: 25px;
+            height: 3px;
+            background-color: #333;
+            margin: 5px 0;
+            transition: 0.4s;
+        }
+
+        .side-menu {
+            position: fixed;
+            top: 0;
+            right: -250px;
+            width: 250px;
+            height: 100%;
+            background-color: #fff;
+            /* box-shadow: -2px 0 5px rgba(0, 0, 0, 0.1); */
+            transition: 0.4s ease;
+            /* padding: 60px 20px; */
+            /* overflow-y: auto; */
+            overflow-x: hidden; /* 横スクロールを隠す */
+            z-index: 999;
+        }
+
+        .side-menu.active {
+            right: 0;
+        }
+
+        .side-menu ul {
+            list-style-type: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .side-menu ul li {
+            margin: 20px 0;
+        }
+
+        .side-menu ul li a {
+            text-decoration: none;
+            color: #333;
+            font-size: 18px;
+            font-weight: 300;
+        }
+
+        .hero {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            background-color: #f4f4f4;
+            padding: 0 20px;
+            text-align: center;
+        }
+
+        .hero-text h1 {
+            font-size: 2.5rem;
+            margin-bottom: 20px;
+            font-weight: 300;
+            color: #333;
+        }
+
+        .hero-text p {
+            font-size: 1.2rem;
+            color: #666;
+            margin-bottom: 40px;
+        }
+
+        .hero-image img {
+            max-width: 100%;
+            height: auto;
+            border-radius: 8px;
+        }
+
+        .about {
+            padding: 40px 20px;
+            background-color: #fff;
+            text-align: center;
+        }
+
+        .about h2 {
+            font-size: 2rem;
+            margin-bottom: 20px;
+            font-weight: 300;
+            color: #333;
+        }
+
+        .about p {
+            font-size: 1.1rem;
+            color: #666;
+            max-width: 600px;
+            margin: auto;
+            line-height: 1.6;
+        }
+
+    </style>
+</head>
+<body>
+    <div class="menu-icon" onclick="toggleMenu()">
+        <div class="bar"></div>
+        <div class="bar"></div>
+        <div class="bar"></div>
+    </div>
+
+    <div class="side-menu" id="sideMenu">
+        <ul>
+            <li><a href="{% url 'store_list' %}">Store List</a></li>
+        </ul>
+    </div>
+
+    <div class="hero">
+        <div class="hero-text">
+            <h1>Welcome to YourApp</h1>
+            <p>Discover amazing stores and more through our innovative platform.</p>
+        </div>
+        <div class="hero-image">
+            <img src="{% static 'images/hero-image.png' %}" alt="App Image">
+        </div>
+    </div>
+
+    <div class="about">
+        <h2>About the App</h2>
+        <p>YourApp helps you find the best stores and products around you with ease. Use our QR codes to explore new recommendations.</p>
+    </div>
+
+    <script>
+        function toggleMenu() {
+            var menu = document.getElementById('sideMenu');
+            if (menu.classList.contains('active')) {
+                menu.classList.remove('active');
+            } else {
+                menu.classList.add('active');
+            }
+        }
+    </script>
+</body>
+</html>

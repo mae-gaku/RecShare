@@ -5,12 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>お店一覧</title>
     {% load static %}
-    <!-- <link rel="stylesheet" href="{% static 'stores/css/style.css' %}"> -->
-
     <style>
-        /* styles.css */
-
-        /* 共通のデザイン設定 */
         body {
             font-family: Arial, sans-serif;
             margin: 0;
@@ -20,20 +15,50 @@
         }
 
         header {
-            /* background-color: #333;
-            color: #fff;
-            padding: 1rem; */
             text-align: center;
+            padding: 1rem 0;
         }
 
         .container {
             width: 90%;
             margin: auto;
+            padding: 1rem 0;
+        }
+
+        /* 検索フォームのシンプルなスタイル */
+        .search-form {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 1rem;
+        }
+
+        .search-form input[type="text"] {
+            padding: 0.5rem;
+            font-size: 1rem;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            width: 70%;
+            max-width: 300px;
+        }
+
+        .search-form button {
+            padding: 0.5rem 1rem;
+            font-size: 1rem;
+            border: none;
+            border-radius: 4px;
+            background-color: #3f4244;
+            color: #fff;
+            cursor: pointer;
+            margin-left: 0.5rem;
+        }
+
+        .search-form button:hover {
+            background-color: #3f4244;
         }
 
         .store-list {
             display: flex;
-            flex-wrap: wrap;
+            flex-direction: column;
             gap: 1rem;
         }
 
@@ -41,19 +66,12 @@
             background-color: #fff;
             border-radius: 8px;
             box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-            padding: 0; /* Remove padding to fit the image */
-            width: calc(50% - 0.5rem); /* モバイルデバイスに合わせて幅を調整 */
-            max-width: 300px; /* 最大幅を設定 */
-            text-align: center;
-            box-sizing: border-box;
-            text-decoration: none; /* Remove underline from the link */
-            color: inherit; /* Inherit text color */
+            padding: 1rem;
+            text-decoration: none;
+            color: inherit;
             display: flex;
-            flex-direction: column; /* Arrange content vertically */
             align-items: center;
-            overflow: hidden; /* Hide overflowed content */
             transition: transform 0.3s ease, box-shadow 0.3s ease;
-            position: relative; /* Positioning context for the image */
         }
 
         .store-item:hover {
@@ -62,50 +80,51 @@
         }
 
         .store-image {
-            width: 100%;
-            position: relative;
+            flex-shrink: 0;
+            width: 100px;
+            height: 100px;
+            margin-right: 1.5rem;
             overflow: hidden;
-            border-radius: 8px 8px 0 0; /* Top corners rounded */
+            border-radius: 8px;
             display: flex;
             align-items: center;
             justify-content: center;
         }
 
         .store-image img {
-            max-width: 100%;
-            max-height: 100%;
-            object-fit: contain; /* Maintain aspect ratio */
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
         }
 
-        .store-item h2 {
-            margin: 1rem 0 0;
-            font-size: 1.5rem;
+        .store-details {
+            flex-grow: 1;
+            text-align: left;
+        }
+
+        .store-details h2 {
+            margin: 0 0 0.5rem;
+            font-size: 1.2rem;
             color: #333;
         }
 
-        .store-item p {
-            margin: 0.5rem 0;
+        .store-details p {
+            margin: 0;
             color: #555;
         }
-
-        @media (min-width: 768px) {
-            .store-item {
-                width: calc(50% - 1rem); /* タブレット以上のサイズでは2列に並ぶ */
-            }
-        }
-
-        @media (min-width: 1024px) {
-            .store-item {
-                width: calc(33.333% - 1rem); /* デスクトップサイズでは3列に並ぶ */
-            }
-        }
-
     </style>
 </head>
 <body>
     <header>
         <h1>お店一覧</h1>
     </header>
+    <!-- シンプルな検索フォーム -->
+    <div class="container">
+        <form method="get" action="{% url 'store_list' %}" class="search-form">
+            <input type="text" name="genre" placeholder="ジャンルで検索" value="{{ request.GET.genre|default_if_none:'' }}">
+            <button type="submit">検索</button>
+        </form>
+    </div>
     <main>
         <div class="container">
             <div class="store-list">
@@ -114,8 +133,10 @@
                         <div class="store-image">
                             <img src="{{ store.image.url }}" alt="{{ store.name }}">
                         </div>
-                        <h2>{{ store.name }}</h2>
-                        <p>{{ store.description }}</p>
+                        <div class="store-details">
+                            <h2>{{ store.name }}</h2>
+                            <p>{{ store.description }}</p>
+                        </div>
                     </a>
                 {% endfor %}
             </div>

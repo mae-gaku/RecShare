@@ -55,7 +55,8 @@ ROOT_URLCONF = 'shop_recommendation.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
+        # 'DIRS': [],
+        'DIRS': [BASE_DIR / 'templates'],  # templatesフォルダを追加
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -138,5 +139,15 @@ LOGGING = {
     },
 }
 
+# settings.py
+LOGIN_REDIRECT_URL = '/'  # ログイン後のリダイレクト先（例：ホームページ）
+LOGOUT_REDIRECT_URL = '/'  # ログアウト後のリダイレクト先
+
+# import os
+# MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+
+
+# settings.py
 import os
+MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')

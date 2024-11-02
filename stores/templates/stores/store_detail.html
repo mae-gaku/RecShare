@@ -3,84 +3,25 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{{ store.name }}</title>
+    <title>{{ store.name }} - 詳細</title>
     {% load static %}
     <style>
-        body {
-            font-family: Arial, sans-serif;
-            margin: 0;
-            padding: 0;
-            color: #333;
-            background-color: #f8f8f8;
+        /* 必要なスタイルの定義 */
+        body { font-family: Arial, sans-serif; margin: 0; padding: 0; color: #333; background-color: #f8f8f8; }
+        header { text-align: center; padding: 1rem 0; background-color: #f8f8f8;  }
+        .container { width: 90%; margin: auto; padding: 1rem 0; }
+        .store-header, .store-info, .reviews-section { margin-bottom: 2rem; }
+        .store-image { width: 100%; max-width: 500px; margin: 0 auto; }
+        .store-image img { width: 100%; border-radius: 8px; }
+        .reviews-section h2, .store-info h2 { font-size: 1.5rem; color: #333; }
+        .review-item { background-color: #fff; padding: 1rem; margin-bottom: 1rem; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); }
+        .review-form { background-color: #fff; padding: 1rem; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); border-radius: 8px; }
+        .review-form h3 { font-size: 1.5rem; margin-bottom: 1rem; }
+        .review-form input[type="number"], .review-form textarea, .review-form button {
+            width: 100%; padding: 0.5rem; margin-bottom: 1rem; border: 1px solid #ddd; border-radius: 4px;
         }
-
-        header {
-            text-align: center;
-            padding: 1rem 0;
-            /* background-color: #fff; */
-            /* box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); */
-        }
-
-        header h1 {
-            margin: 0;
-            font-size: 2rem;
-        }
-
-        .container {
-            width: 90%;
-            margin: auto;
-            padding: 1rem 0;
-        }
-
-        .store-details {
-            margin-bottom: 2rem;
-            text-align: center;
-        }
-
-        .store-details p {
-            margin: 0.5rem 0;
-            font-size: 1.2rem;
-        }
-
-        .dishes-grid {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr); /* 2列に設定 */
-            gap: 1rem;
-            justify-content: center;
-        }
-
-        .dish-item {
-            background-color: #fff;
-            border-radius: 8px;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-            padding: 0.5rem;
-            text-align: center;
-            overflow: hidden;
-            transition: transform 0.3s ease, box-shadow 0.3s ease;
-        }
-
-        .dish-item:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2);
-        }
-
-        .dish-item img {
-            width: 100%;
-            height: auto;
-            border-radius: 8px;
-            object-fit: cover;
-        }
-
-        .dish-item h2 {
-            font-size: 1.2rem;
-            margin: 0.5rem 0 0;
-        }
-
-        .dish-item p {
-            margin: 0.5rem 0;
-            font-size: 1rem;
-            color: #555;
-        }
+        .review-form button { background-color: #333; color: #fff; border: none; cursor: pointer; }
+        .review-form button:hover { background-color: #555; }
     </style>
 </head>
 <body>
@@ -89,20 +30,53 @@
     </header>
     <main>
         <div class="container">
-            <div class="store-details">
-                <p>{{ store.description }}</p>
-                <p><a href="{{ store.website }}">{{ store.website }}</a></p>
-                <!-- <img src="{% url 'generate_qr_code' store.id %}" alt="QRコード"> -->
+            <!-- お店の写真 -->
+            <div class="store-image">
+                <img src="{{ store.image.url }}" alt="{{ store.name }}">
             </div>
 
-            <div class="dishes-grid">
-                {% for dish in store.dishes.all %}
-                    <div class="dish-item">
-                        <img src="{{ dish.image.url }}" alt="{{ dish.name }}">
-                        <h2>{{ dish.name }}</h2>
-                        <p>{{ dish.description }}</p>
+            <!-- お店の基本情報と紹介 -->
+            <div class="store-info">
+                <h2>お店の紹介</h2>
+                <p>{{ store.description }}</p>
+                <p><strong>住所:</strong> {{ store.address }}</p>
+                <p><strong>営業時間:</strong> {{ store.hours }}</p>
+                <p><strong>ホームページ:</strong> <a href="{{ store.website }}" target="_blank">{{ store.website }}</a></p>
+            </div>
+
+            <!-- Googleマップのリンク -->
+            <div class="store-map">
+                <h2>アクセス</h2>
+                <p><a href="https://www.google.com/maps/search/?api=1&query={{ store.latitude }},{{ store.longitude }}" target="_blank">Googleマップで表示</a></p>
+            </div>
+
+            <!-- 口コミセクション -->
+            <div class="reviews-section">
+                <h2>口コミ</h2>
+                {% for review in reviews %}
+                    <div class="review-item">
+                        <p><strong>{{ review.user.username }}:</strong> {{ review.comment }}</p>
+                        <p>評価: {{ review.rating }} / 5</p>
+                        <p>投稿日: {{ review.created_at }}</p>
                     </div>
+                {% empty %}
+                    <p>まだ口コミがありません。</p>
                 {% endfor %}
+            </div>
+
+            <!-- 口コミ投稿フォーム -->
+            <div class="review-form">
+                <h3>口コミを投稿する</h3>
+                <form method="post" action="{% url 'store_detail' store.id %}">
+                    {% csrf_token %}
+                    <label for="rating">評価 (1〜5):</label>
+                    <input type="number" id="rating" name="rating" min="1" max="5" required>
+                    
+                    <label for="comment">コメント:</label>
+                    <textarea id="comment" name="comment" rows="4" required></textarea>
+                    
+                    <button type="submit">投稿する</button>
+                </form>
             </div>
         </div>
     </main>

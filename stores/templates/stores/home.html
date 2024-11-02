@@ -1,163 +1,150 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ja">
 <head>
-    {% load static %}
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="{% static 'stores/css/style.css' %}">
     <title>App Home</title>
+    {% load static %}
     <style>
-        body {
-            font-family: 'Helvetica Neue', Arial, sans-serif;
-            margin: 0;
-            padding: 0;
-            background-color: #f4f4f4;
-            color: #333;
-            overflow-x: hidden; /* 横スクロールを隠す */
-        }
+        /* 既存のスタイル */
+        body { font-family: 'Helvetica Neue', Arial, sans-serif; margin: 0; padding: 0; color: #333; overflow-x: hidden; }
+        .app-name { position: fixed; top: 20px; left: 20px; font-size: 1.8rem; font-weight: bold; color: #015c0a; z-index: 1000; text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.2); }
+        .auth-links { position: fixed; top: 20px; right: 20px; z-index: 1000; }
+        .auth-links a { color: #333; margin-left: 15px; text-decoration: none; font-size: 1rem; }
+        .main-section { display: flex; flex-direction: column; align-items: center; padding-top: 80px; text-align: center; max-width: 800px; margin: 0 auto; }
+        .hero-image { width: 100%; max-width: 600px; margin: 20px 0; background: url("{% static 'images/hero-image.png' %}") no-repeat center center; background-size: contain; aspect-ratio: 4 / 3; border-radius: 10px; }
+        .store-slider-container { overflow: hidden; width: 100%; position: relative; }
+        .store-slider { display: flex; transition: transform 0.3s ease; gap: 10px; }
+        .store-item { flex: 0 0 calc(33.33% - 10px); box-sizing: border-box; padding: 5px; overflow: hidden; text-decoration: none; color: inherit; }
+        .store-item img { width: 100%; height: auto; object-fit: cover; border-radius: 10px; }
+        .store-list-button { display: inline-block; font-size: 1.2rem; color: #fff; border: none; padding: 10px 20px; margin: 20px auto; text-decoration: none; border-radius: 5px; cursor: pointer; text-align: center; }
 
-        .menu-icon {
+        /* 改良されたハンバーガーメニューのスタイル */
+        .hamburger-menu { position: fixed; top: 20px; right: 20px; cursor: pointer; z-index: 1001; display: flex; flex-direction: column; justify-content: space-between; width: 30px; height: 20px; }
+        .hamburger-icon { width: 100%; height: 3px; background-color: #333; border-radius: 3px; transition: 0.3s; }
+        .hamburger-menu.active .hamburger-icon:nth-child(1) { transform: rotate(45deg) translate(5px, 5px); }
+        .hamburger-menu.active .hamburger-icon:nth-child(2) { opacity: 0; }
+        .hamburger-menu.active .hamburger-icon:nth-child(3) { transform: rotate(-45deg) translate(5px, -5px); }
+
+        /* 淡い背景のオーバーレイ */
+        .overlay { 
+            display: none; 
+            position: fixed; 
+            top: 0; 
+            left: 0; 
+            width: 100%; 
+            height: 100%; 
+            background-color: rgba(255, 255, 255, 0.85); /* 白めの淡い背景 */
+            backdrop-filter: blur(5px); 
+            z-index: 1000; 
+            opacity: 0; 
+            transition: opacity 0.4s ease;
+        }
+        .overlay.active { display: block; opacity: 1; }
+
+        /* メニューリンクのスタイル */
+        .hamburger-content {
             position: fixed;
-            top: 20px;
-            right: 20px;
-            cursor: pointer;
-            z-index: 1000;
-        }
-
-        .menu-icon .bar {
-            width: 25px;
-            height: 3px;
-            background-color: #333;
-            margin: 5px 0;
-            transition: 0.4s;
-        }
-
-        .side-menu {
-            position: fixed;
-            top: 0;
-            right: -250px;
-            width: 250px;
-            height: 100%;
-            background-color: #fff;
-            /* box-shadow: -2px 0 5px rgba(0, 0, 0, 0.1); */
-            transition: 0.4s ease;
-            /* padding: 60px 20px; */
-            /* overflow-y: auto; */
-            overflow-x: hidden; /* 横スクロールを隠す */
-            z-index: 999;
-        }
-
-        .side-menu.active {
-            right: 0;
-        }
-
-        .side-menu ul {
-            list-style-type: none;
-            padding: 0;
-            margin: 0;
-        }
-
-        .side-menu ul li {
-            margin: 20px 0;
-        }
-
-        .side-menu ul li a {
-            text-decoration: none;
-            color: #333;
-            font-size: 18px;
-            font-weight: 300;
-        }
-
-        .hero {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            height: 100vh;
-            background-color: #f4f4f4;
-            padding: 0 20px;
+            top: 30%;
+            right: 50%;
+            transform: translateX(50%);
             text-align: center;
-        }
-
-        .hero-text h1 {
-            font-size: 2.5rem;
-            margin-bottom: 20px;
-            font-weight: 300;
             color: #333;
-        }
-
-        .hero-text p {
             font-size: 1.2rem;
-            color: #666;
-            margin-bottom: 40px;
+            opacity: 0;
+            transition: opacity 0.4s ease;
+            z-index: 1002;
         }
-
-        .hero-image img {
-            max-width: 100%;
-            height: auto;
-            border-radius: 8px;
+        .hamburger-content.active {
+            opacity: 1;
         }
-
-        .about {
-            padding: 40px 20px;
-            background-color: #fff;
-            text-align: center;
+        .hamburger-content a {
+            display: block;
+            margin: 30px 0;
+            text-decoration: none;
+            color: #015c0a;
+            font-size: 1.5rem;
         }
-
-        .about h2 {
-            font-size: 2rem;
-            margin-bottom: 20px;
-            font-weight: 300;
-            color: #333;
+        .about-section {
+            margin-top: 70px;
         }
-
-        .about p {
-            font-size: 1.1rem;
-            color: #666;
-            max-width: 600px;
-            margin: auto;
-            line-height: 1.6;
-        }
-
     </style>
 </head>
 <body>
-    <div class="menu-icon" onclick="toggleMenu()">
-        <div class="bar"></div>
-        <div class="bar"></div>
-        <div class="bar"></div>
+    <div class="app-name">RecShare</div>
+
+    <div class="auth-links">
+        {% if user.is_authenticated %}
+            <div class="hamburger-menu" onclick="toggleMenu()">
+                <div class="hamburger-icon"></div>
+                <div class="hamburger-icon"></div>
+                <div class="hamburger-icon"></div>
+            </div>
+            <div class="overlay" onclick="toggleMenu()"></div>
+            <div class="hamburger-content">
+                <a href="{% url 'store_list' %}">Store List</a>
+                <a href="{% url 'logout' %}">Logout</a>
+            </div>
+        {% else %}
+            <a href="{% url 'login' %}">Login</a>
+            <a href="{% url 'signup' %}">Sign Up</a>
+        {% endif %}
     </div>
 
-    <div class="side-menu" id="sideMenu">
-        <ul>
-            <li><a href="{% url 'store_list' %}">Store List</a></li>
-        </ul>
-    </div>
-
-    <div class="hero">
-        <div class="hero-text">
-            <h1>Welcome to YourApp</h1>
-            <p>Discover amazing stores and more through our innovative platform.</p>
+    <div class="main-section">
+        <div class="hero-image"></div>
+        <h2>おすすめの店</h2>
+        <div class="store-slider-container">
+            <div class="store-slider">
+                {% for store in stores %}
+                    <a href="{% url 'store_detail' store.id %}" class="store-item">
+                        <img src="{{ store.image.url }}" alt="{{ store.name }}">
+                        <p>{{ store.name }}</p>
+                    </a>
+                {% endfor %}
+            </div>
         </div>
-        <div class="hero-image">
-            <img src="{% static 'images/hero-image.png' %}" alt="App Image">
+        <!-- <a href="{% url 'store_list' %}" class="store-list-button">Store List</a> -->
+        <div class="about-section">
+            <h2>About the App</h2>
+            <p>YourApp helps you find the best stores and products around you with ease. Use our QR codes to explore new recommendations.</p>
         </div>
-    </div>
-
-    <div class="about">
-        <h2>About the App</h2>
-        <p>YourApp helps you find the best stores and products around you with ease. Use our QR codes to explore new recommendations.</p>
+        <div class="about-section">
+            <h2>About the Company</h2>
+            <p>Our company is dedicated to bringing you the most reliable recommendations for local businesses, helping you connect with the best services in town.</p>
+        </div>
     </div>
 
     <script>
         function toggleMenu() {
-            var menu = document.getElementById('sideMenu');
-            if (menu.classList.contains('active')) {
-                menu.classList.remove('active');
+            const menu = document.querySelector('.hamburger-menu');
+            const overlay = document.querySelector('.overlay');
+            const content = document.querySelector('.hamburger-content');
+            menu.classList.toggle('active');
+            overlay.classList.toggle('active');
+            content.classList.toggle('active');
+        }
+
+        const slider = document.querySelector('.store-slider');
+        let scrollPosition = 0;
+        const itemWidth = slider.querySelector('.store-item').offsetWidth + 10;
+
+        const sliderClone = slider.innerHTML;
+        slider.innerHTML += sliderClone;
+
+        function autoSlide() {
+            scrollPosition += itemWidth;
+            if (scrollPosition >= slider.scrollWidth / 2) {
+                scrollPosition = 0;
+                slider.style.transition = 'none';
+                slider.style.transform = `translateX(0px)`;
             } else {
-                menu.classList.add('active');
+                slider.style.transition = 'transform 0.5s ease';
+                slider.style.transform = `translateX(-${scrollPosition}px)`;
             }
         }
+
+        setInterval(autoSlide, 2000);
     </script>
 </body>
 </html>

@@ -1,7 +1,9 @@
 from django.db import models
 from django.urls import reverse
 from django.contrib.auth.models import User
-
+import os
+import qrcode
+from django.conf import settings
 
 
 class Genre(models.Model):
@@ -12,6 +14,15 @@ class Genre(models.Model):
 
     
 class Store(models.Model):
+
+    GENRE_CHOICES = [
+        ('cafe', 'Cafe'),
+        ('restaurant', 'Restaurant'),
+        ('bar', 'Bar'),
+        ('shop', 'Shop'),
+        # 必要に応じて選択肢を追加
+    ]
+
     name = models.CharField(max_length=255)
     description = models.TextField()
     address = models.CharField(max_length=255)
@@ -20,13 +31,22 @@ class Store(models.Model):
     image = models.ImageField(upload_to='stores/', blank=True, null=True)
     latitude = models.DecimalField(max_digits=9, decimal_places=6, blank=True, null=True)
     longitude = models.DecimalField(max_digits=9, decimal_places=6, blank=True, null=True)
-    # genres = models.ManyToManyField(Genre)  # 多対多の関係でジャンルを紐づけ
-    # genre = models.CharField(max_length=50)  # ジャンルフィールドを追加
-    # genre = models.ForeignKey(Genre, on_delete=models.SET_NULL, null=True, blank=True)
-    genre = models.ForeignKey(Genre, null=True, blank=True, on_delete=models.SET_NULL)
+    # genre = models.ForeignKey(Genre, null=True, blank=True, on_delete=models.SET_NULL)
+    
+    genre = models.CharField(max_length=100, choices=GENRE_CHOICES, blank=True, null=True)
+    likes = models.PositiveIntegerField(default=0)  # いいねカウントの追加
+
 
     def __str__(self):
         return self.name
+
+class Like(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    store = models.ForeignKey(Store, on_delete=models.CASCADE)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        unique_together = ('user', 'store')  # ユーザーと店舗の組み合わせを一意に制限
 
 
 class StoreGroup(models.Model):

@@ -12,6 +12,7 @@ admin.site.register(Genre)
 class StoreAdmin(admin.ModelAdmin):
     # inlines = [DishInline]
     list_display = ('name', 'description')
+    filter_horizontal = ('recommended_stores',)  # ManyToManyField 用の UI を提供
 
 @admin.register(Review)
 class ReviewAdmin(admin.ModelAdmin):

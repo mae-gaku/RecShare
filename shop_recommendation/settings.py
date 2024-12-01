@@ -151,3 +151,5 @@ LOGOUT_REDIRECT_URL = '/'  # ログアウト後のリダイレクト先
 import os
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+
+SITE_URL = "http://127.0.0.1:8003/"

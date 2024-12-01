@@ -22,6 +22,34 @@
         }
         .review-form button { background-color: #333; color: #fff; border: none; cursor: pointer; }
         .review-form button:hover { background-color: #555; }
+
+        /* いいねボタンのデザイン */
+        .like-container {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 1.2rem;
+        }
+
+        .like-button {
+            display: flex;
+            align-items: center;
+            background: none;
+            border: none;
+            cursor: pointer;
+            color: #333;
+            font-size: 1rem;
+            padding: 0;
+        }
+
+        .like-icon {
+            font-size: 1.5rem;  /* アイコンサイズを調整 */
+            color: #ff4757;     /* アイコンの色 */
+        }
+
+        .like-button:hover .like-icon {
+            color: #ff6b81;     /* ホバー時の色 */
+        }
     </style>
 </head>
 <body>
@@ -42,6 +70,9 @@
                 <p><strong>住所:</strong> {{ store.address }}</p>
                 <p><strong>営業時間:</strong> {{ store.hours }}</p>
                 <p><strong>ホームページ:</strong> <a href="{{ store.website }}" target="_blank">{{ store.website }}</a></p>
+                <!-- いいね機能 -->
+                <!-- <p><strong>いいね:</strong> <span id="like-count">{{ store.likes }}</span></p>
+                <button id="like-button">いいね</button> -->
             </div>
 
             <!-- Googleマップのリンク -->
@@ -49,7 +80,41 @@
                 <h2>アクセス</h2>
                 <p><a href="https://www.google.com/maps/search/?api=1&query={{ store.latitude }},{{ store.longitude }}" target="_blank">Googleマップで表示</a></p>
             </div>
+            <!-- いいね表示 -->
+            <div class="like-container">
+                <h4>いいね数</h4>
+                <p></p>
+                <button id="like-button" class="like-button" {% if user_has_liked %}disabled{% endif %}>
+                    <span class="like-icon">👍</span> <!-- アイコン（絵文字）または画像を使用 -->
+                    <span id="like-count">{{ store.likes }}</span>
+                </button>
+            </div>
 
+            <script>
+                document.getElementById("like-button").addEventListener("click", function() {
+                    const url = "{% url 'like_store' store.id %}";
+
+                    fetch(url, {
+                        method: "POST",
+                        headers: {
+                            "X-CSRFToken": "{{ csrf_token }}",
+                            "Content-Type": "application/json"
+                        },
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.liked) {
+                            // いいね数を更新
+                            document.getElementById("like-count").textContent = data.likes;
+                            // ボタンを無効化
+                            document.getElementById("like-button").disabled = true;
+                        } else {
+                            alert("すでにこのお店にいいねしています。");
+                        }
+                    })
+                    .catch(error => console.error("Error:", error));
+                });
+            </script>
             <!-- 口コミセクション -->
             <div class="reviews-section">
                 <h2>口コミ</h2>

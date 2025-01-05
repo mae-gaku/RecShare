@@ -23,7 +23,10 @@ urlpatterns = [
     path('register-store/', views.register_store, name='register_store'),
     path('register_store_group/', views.register_store_group, name='register_store_group'),
     path('store_group/<int:group_id>/', views.store_group_list, name='store_group_list'),
-    path('store-group/<int:store_id>/', views.store_group, name='store_group')
+    path('store-group/<int:store_id>/', views.store_group, name='store_group'),
+    path('ai_recommendations/', views.predicted_stores, name='predicted_stores'),
+    path('map/', views.map_page, name='map_page'),
+
 ]
 
 

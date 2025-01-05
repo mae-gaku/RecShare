@@ -44,6 +44,7 @@
 
         /* メニューリンクのスタイル */
         .hamburger-content {
+            pointer-events: none;
             position: fixed;
             top: 30%;
             right: 50%;
@@ -57,6 +58,7 @@
         }
         .hamburger-content.active {
             opacity: 1;
+            pointer-events: auto; /* メニューが開いた時にクリックを有効化 */
         }
         .hamburger-content a {
             display: block;
@@ -68,6 +70,62 @@
         .about-section {
             margin-top: 70px;
         }
+
+        .about-title {
+            font-size: 2rem;
+            font-weight: bold;
+            color: #015c0a;
+            text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.2);
+            margin-bottom: 15px;
+        }
+
+        .about-section {
+            margin: 40px 20px;
+            padding: 20px;
+            /* border: 1px solid #e0e0e0; */
+            border-radius: 10px;
+            /* background-color: #fdfdfd; */
+            max-width: 800px;
+            margin: 0 auto;
+            /* box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1); */
+        }
+
+        .about-title {
+            font-size: 1.8rem;
+            font-weight: bold;
+            color: #015c0a;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .about-content p {
+            font-size: 1.2rem;
+            line-height: 1.8;
+            color: #333;
+            text-align: justify;
+            margin-bottom: 15px;
+        }
+
+        .highlight {
+            font-weight: bold;
+            color: #007bff;
+            background-color: #e6f3ff;
+            padding: 0 5px;
+            border-radius: 3px;
+        }
+
+        /* デバイスサイズ対応 */
+        @media (max-width: 768px) {
+            .about-title {
+                font-size: 1.3rem;
+            }
+
+            .about-content p {
+                font-size: 0.8rem;
+            }
+            
+        }
+
     </style>
 </head>
 <body>
@@ -83,6 +141,7 @@
             <div class="overlay" onclick="toggleMenu()"></div>
             <div class="hamburger-content">
                 <a href="{% url 'store_list' %}">Store List</a>
+                <a href="{% url 'map_page' %}">Map</a>
                 <a href="{% url 'logout' %}">Logout</a>
                 <a href="{% url 'settings_page' %}">設定</a>
                 {% if user.is_authenticated and user.is_staff %}
@@ -113,17 +172,33 @@
             </div>
         </div>
         <!-- <a href="{% url 'store_list' %}" class="store-list-button">Store List</a> -->
+    
+        <!-- <a href="{% url 'predicted_stores' %}" class="store-list-button" style="background-color: #007bff;">AIのおすすめ分析</a> -->
+        <div class="about-section"></div>
+        <div class="about-section"></div>
         <div class="about-section">
-            <h2>About the App</h2>
-            <p>YourApp helps you find the best stores and products around you with ease. Use our QR codes to explore new recommendations.</p>
+            <h2 class="about-title">1. RecShareってどんなサービス？？</h2>
+            <div class="about-content">
+                <p class="app_int_v1"><span class="highlight">新しいお店を見つけるのって意外と難しい</span>ですよね？</p>
+                <p>RecShareなら、QRコードをスキャンするだけで、<span class="highlight">あなたにぴったりのおすすめ店を簡単にチェック</span>できます！</p>
+                <p>さらに、<span class="highlight">AIがあなたの好みに合ったお店を提案！</span></p>
+            </div>
         </div>
+        
+        <div class="about-section"></div>
         <div class="about-section">
-            <h2>About the Company</h2>
-            <p>Our company is dedicated to bringing you the most reliable recommendations for local businesses, helping you connect with the best services in town.</p>
+            <h2 class="about-title">2. AIがあなたにオススメのお店！
+            </h2>
+            <div class="about-content">
+                <p class="app_int_v1">下のボタンを押すことでAIがあなたに合ったお店を分析して紹介してくれます！</p>
+            </div>
+            <a href="{% url 'predicted_stores' %}" class="store-list-button" style="background-color: #007bff;">AIのおすすめ分析</a>
         </div>
+
     </div>
 
     <script>
+        
         function toggleMenu() {
             const menu = document.querySelector('.hamburger-menu');
             const overlay = document.querySelector('.overlay');

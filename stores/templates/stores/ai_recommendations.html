@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>お店一覧</title>
+    <title>AIおすすめ店舗</title>
     {% load static %}
     <style>
         body {
@@ -23,37 +23,6 @@
             width: 90%;
             margin: auto;
             padding: 1rem 0;
-        }
-
-        /* 検索フォームのシンプルなスタイル */
-        .search-form {
-            display: flex;
-            justify-content: center;
-            margin-bottom: 1rem;
-        }
-
-        .search-form input[type="text"] {
-            padding: 0.5rem;
-            font-size: 1rem;
-            border: 1px solid #ccc;
-            border-radius: 4px;
-            width: 70%;
-            max-width: 300px;
-        }
-
-        .search-form button {
-            padding: 0.5rem 1rem;
-            font-size: 1rem;
-            border: none;
-            border-radius: 4px;
-            background-color: #3f4244;
-            color: #fff;
-            cursor: pointer;
-            margin-left: 0.5rem;
-        }
-
-        .search-form button:hover {
-            background-color: #3f4244;
         }
 
         .store-list {
@@ -112,34 +81,30 @@
             margin: 0;
             color: #555;
         }
-        
     </style>
 </head>
 <body>
     <header>
-        <h1>お店一覧</h1>
+        <h1>AIおすすめ店舗</h1>
     </header>
-    <!-- シンプルな検索フォーム -->
-    <div class="container">
-        <form method="get" action="{% url 'store_list' %}" class="search-form">
-            <input type="text" name="genre" placeholder="ジャンルで検索" value="{{ request.GET.genre|default_if_none:'' }}">
-            <button type="submit">検索</button>
-        </form>
-    </div>
     <main>
         <div class="container">
             <div class="store-list">
-                {% for store in stores %}
-                    <a href="{% url 'store_detail' store.id %}" class="store-item">
-                        <div class="store-image">
-                            <img src="{{ store.image.url }}" alt="{{ store.name }}">
-                        </div>
-                        <div class="store-details">
-                            <h2>{{ store.name }}</h2>
-                            <p>{{ store.description }}</p>
-                        </div>
-                    </a>
-                {% endfor %}
+                {% if stores %}
+                    {% for store in stores %}
+                        <a href="{% url 'store_detail' store.id %}" class="store-item">
+                            <div class="store-image">
+                                <img src="{{ store.image.url }}" alt="{{ store.name }}">
+                            </div>
+                            <div class="store-details">
+                                <h2>{{ store.name }}</h2>
+                                <p>{{ store.description|truncatewords:15 }}</p>
+                            </div>
+                        </a>
+                    {% endfor %}
+                {% else %}
+                    <p>現在、おすすめの店舗はありません。</p>
+                {% endif %}
             </div>
         </div>
     </main>

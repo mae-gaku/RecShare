@@ -3,11 +3,12 @@ from .models import Store
 from .models import StoreGroup
 from django.contrib import admin
 # from .models import Store, Dish, Review
-from .models import Store, Review, Genre
+from .models import Store, Review, Genre, ViewLog
 admin.site.register(Store)
 # admin.site.register(QRCode)
 admin.site.register(StoreGroup)
 admin.site.register(Genre)
+admin.site.register(ViewLog)
 
 class StoreAdmin(admin.ModelAdmin):
     # inlines = [DishInline]

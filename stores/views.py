@@ -120,12 +120,34 @@ def store_detail(request, store_id):
     else:
         form = ReviewForm()
 
+    # インタラクションの記録
+    # if request.user.is_authenticated:
+    #     UserInteraction.objects.create(
+    #         user=request.user,
+    #         store=store,
+    #         interaction_type='view'
+    #     )
+
+    # 閲覧記録を保存
+    from django.utils.timezone import now
+    if request.user.is_authenticated:
+        ViewLog.objects.create(user=request.user, store=store, viewed_at=now())
+
+    sort_order = request.GET.get('sort_order', 'newest')  # デフォルトは新しい順
+    if sort_order == 'oldest':
+        reviews = Review.objects.filter(store=store).order_by('created_at')  # 古い順
+    else:
+        reviews = Review.objects.filter(store=store).order_by('-created_at')  # 新しい順
+
+
+    
     context = {
         'store': store,
         'reviews': reviews,
         'form': form,
         'user_has_liked': user_has_liked,  # 「いいね」状態をテンプレートに渡す
         'recommended_groups': recommended_groups,  # おすすめグループをテンプレートに渡す
+        'sort_order': sort_order,
     }
     return render(request, 'stores/store_detail.html', context)
 
@@ -237,3 +259,307 @@ def store_group(request, store_id):
     store = get_object_or_404(Store, id=store_id)
     store_groups = StoreGroup.objects.filter(stores=store)
     return render(request, 'store_group.html', {'store': store, 'store_groups': store_groups})
+
+
+from django.shortcuts import render
+from .models import Store
+from .utils import predict_next_stores
+from .models import UserInteraction, Store
+
+from django.shortcuts import render
+from .models import Store, ViewLog
+from prophet import Prophet
+import pandas as pd
+from django.contrib.auth.decorators import login_required
+
+def record_view(user, store):
+    if user.is_authenticated:
+        ViewLog.objects.create(user=user, store=store)
+
+
+#######################Prophetの場合########################################
+
+# @login_required
+# def predicted_stores(request):
+#     user = request.user
+    
+#     # ユーザーの閲覧履歴を取得
+#     logs = ViewLog.objects.filter(user=user).values('viewed_at', 'store__name')
+    
+#     if logs.count() < 2:
+#         # 閲覧履歴が2件未満の場合、おすすめ店舗をNoneに設定
+#         recommended_stores = None
+#     else:
+#         # DataFrameを作成
+#         df = pd.DataFrame(logs)
+#         df.columns = ['ds', 'y']  # Prophetの期待する列名
+#         df['ds'] = pd.to_datetime(df['ds']).dt.tz_localize(None)  # タイムゾーンを削除
+
+#         # ストア名をカテゴリに変換して数値にマッピング
+#         df['y'] = df['y'].astype('category')
+#         category_to_store = dict(enumerate(df['y'].cat.categories))
+#         store_to_category = {v: k for k, v in category_to_store.items()}
+
+#         # Prophet用にカテゴリの数値をセット
+#         df['y'] = df['y'].cat.codes
+
+#         # モデルを適用
+#         model = Prophet()
+#         model.fit(df)
+
+#         # 予測後にカテゴリ値をストア名に戻す
+#         future = model.make_future_dataframe(periods=100)  # 必要に応じて予測期間を増やす
+#         forecast = model.predict(future)
+    
+#         # カテゴリコードをストア名に変換し、スコア上位5件を取得
+#         forecast['store_name'] = forecast['yhat'].apply(lambda x: category_to_store.get(round(x), 'Unknown'))
+#         top_forecast = forecast.sort_values(by='yhat', ascending=False).drop_duplicates(subset=['store_name']).head(5)
+
+#         # ストア名をリスト化
+#         recommended_store_names = top_forecast['store_name'].tolist()
+
+#         # データベースクエリで名前を用いる
+#         recommended_stores = Store.objects.filter(name__in=recommended_store_names)
+
+#     return render(request, 'stores/ai_recommendations.html', {'stores': recommended_stores})
+
+
+# @login_required
+# def predicted_stores(request):
+#     user = request.user
+    
+#     # ユーザーの閲覧履歴を取得
+#     logs = ViewLog.objects.filter(user=user).values('viewed_at', 'store__name')
+    
+#     if logs.count() < 2:
+#         # 閲覧履歴が2件未満の場合、おすすめ店舗をNoneに設定
+#         recommended_stores = None
+#     else:
+#         # DataFrameを作成
+#         df = pd.DataFrame(logs)
+#         df.columns = ['ds', 'y']  # Prophetの期待する列名
+#         df['ds'] = pd.to_datetime(df['ds']).dt.tz_localize(None)  # タイムゾーンを削除
+
+#         # ストア名をカテゴリに変換して数値にマッピング
+#         df['y'] = df['y'].astype('category')
+#         category_to_store = dict(enumerate(df['y'].cat.categories))
+#         store_to_category = {v: k for k, v in category_to_store.items()}
+
+#         # Prophet用にカテゴリの数値をセット
+#         df['y'] = df['y'].cat.codes
+#         print("df", df)
+#         # モデルを適用
+#         model = Prophet()
+#         model.fit(df)
+
+#         # すべての店舗に対して推論を行う
+#         stores = Store.objects.all()  # 登録されている全てのお店
+#         store_scores = []
+
+#         for store in stores:
+#             # 各店舗について、予測用のデータを生成
+#             store_name = store.name
+#             # 店舗の名前を数値にマッピング
+#             store_code = store_to_category.get(store_name, -1)  # マッピングがない場合は-1
+            
+#             # if store_code != -1:  # 有効な店舗コードがある場合に予測
+#             store_df = pd.DataFrame({'ds': pd.to_datetime('today'), 'y': [store_code]})
+#             store_df['y'] = store_df['y'].astype('category')
+#             store_df['y'] = store_df['y'].cat.codes
+#             forecast = model.predict(store_df)
+
+#             # 予測結果を格納
+#             store_scores.append({
+#                 'store': store,
+#                 'score': forecast['yhat'].values[0]  # 予測スコア
+#             })
+#         print("!store_scores", store_scores)
+#         # スコアを基に降順で並べ替え
+#         store_scores = sorted(store_scores, key=lambda x: x['score'], reverse=True)
+
+#         # 上位5件のお店を取得
+#         top_stores = [store_score['store'] for store_score in store_scores[:5]]
+
+#         # レコメンド店舗を取得
+#         recommended_stores = top_stores
+
+#     return render(request, 'stores/ai_recommendations.html', {'stores': recommended_stores})
+
+
+#########################################################################
+
+
+#######################XGboostの場合########################################
+
+
+import pandas as pd
+from sklearn.model_selection import train_test_split
+from sklearn.preprocessing import LabelEncoder
+import xgboost as xgb
+from django.contrib.auth.decorators import login_required
+from django.shortcuts import render
+
+
+
+@login_required
+def predicted_stores(request):
+    user = request.user
+
+    # 履歴データを取得
+    logs = ViewLog.objects.filter(user=user).values('viewed_at', 'store__genre')
+
+    if logs.count() < 2:
+        # 閲覧履歴が2件未満の場合、レコメンド結果をNoneに設定
+        return render(request, 'stores/ai_recommendations.html', {'stores': None})
+
+    # DataFrame を作成
+    df = pd.DataFrame(logs)
+    df.columns = ['timestamp', 'genre_name']
+    df['timestamp'] = pd.to_datetime(df['timestamp'])
+
+    # 特徴量を作成
+    df['day_of_week'] = df['timestamp'].dt.dayofweek
+    df['hour'] = df['timestamp'].dt.hour
+    df['genre_code'] = df['genre_name'].astype('category').cat.codes
+
+    # モデル学習用データの準備
+    features = df[['day_of_week', 'hour', 'genre_code']]
+    labels = df['genre_name'].astype('category')
+    genre_to_code = dict(enumerate(labels.cat.categories))
+    y = labels.cat.codes
+
+    # XGBoost モデルの学習
+    model = xgb.XGBClassifier(use_label_encoder=False, eval_metric='logloss')
+    model.fit(features, y)
+
+    # 推論データの準備
+    now = pd.Timestamp.now()
+    current_day_of_week = now.dayofweek
+    current_hour = now.hour
+
+    # 全店舗データを取得
+    stores = Store.objects.all()
+
+    # ジャンルカテゴリを生成
+    genres = [store.genre if store.genre else "unknown" for store in stores]
+    genre_categories = pd.Series(genres).astype('category')
+    genre_to_code = dict(enumerate(genre_categories.cat.categories))
+
+    # 店舗特徴量を作成
+    store_features = [
+        {
+            'day_of_week': current_day_of_week,
+            'hour': current_hour,
+            'genre_code': genre_categories.cat.codes[i]
+        }
+        for i, store in enumerate(stores)
+    ]
+    store_features_df = pd.DataFrame(store_features)
+    print("store_features_df", store_features_df)
+
+    # 推論スコアを計算
+    store_scores = model.predict_proba(store_features_df)[:, 1]
+
+    # 上位 5 件の店舗を選出
+    store_score_pairs = zip(stores, store_scores)
+    # print("AAAA", sorted(store_score_pairs, key=lambda x: x[1], reverse=True))
+    top_stores = sorted(store_score_pairs, key=lambda x: x[1], reverse=True)[:5]
+    recommended_stores = [store for store, score in top_stores]
+
+    # 結果をレンダリング
+    return render(request, 'stores/ai_recommendations.html', {'stores': recommended_stores})
+
+
+############################################################################
+
+
+
+#######################LightBGMの場合########################################
+
+# import lightgbm as lgb
+
+# @login_required
+# def predicted_stores(request):
+#     user = request.user
+
+#     # 履歴データを取得
+#     logs = ViewLog.objects.filter(user=user).values('viewed_at', 'store__genre')
+
+#     if logs.count() < 2:
+#         # 閲覧履歴が2件未満の場合、レコメンド結果をNoneに設定
+#         return render(request, 'stores/ai_recommendations.html', {'stores': None})
+
+#     # DataFrame を作成
+#     df = pd.DataFrame(logs)
+#     df.columns = ['timestamp', 'genre_name']
+#     df['timestamp'] = pd.to_datetime(df['timestamp'])
+
+#     # 特徴量を作成
+#     df['day_of_week'] = df['timestamp'].dt.dayofweek
+#     df['hour'] = df['timestamp'].dt.hour
+#     df['genre_code'] = df['genre_name'].astype('category').cat.codes
+
+#     # モデル学習用データの準備
+#     features = df[['day_of_week', 'hour', 'genre_code']]
+#     labels = df['genre_name'].astype('category')
+#     y = labels.cat.codes
+
+#     # LightGBMモデルの学習
+#     train_data = lgb.Dataset(features, label=y)
+#     params = {
+#         'objective': 'multiclass',
+#         'num_class': len(labels.cat.categories),
+#         'metric': 'multi_logloss'
+#     }
+#     model = lgb.train(params, train_data, num_boost_round=100)
+
+#     # 推論データの準備
+#     now = pd.Timestamp.now()
+#     current_day_of_week = now.dayofweek
+#     current_hour = now.hour
+
+#     # 全店舗データを取得
+#     stores = Store.objects.all()
+
+#     # ジャンルカテゴリを生成
+#     genres = [store.genre if store.genre else "unknown" for store in stores]
+#     genre_categories = pd.Series(genres).astype('category')
+#     genre_to_code = dict(enumerate(genre_categories.cat.categories))
+
+#     # 店舗特徴量を作成
+#     store_features = [
+#         {
+#             'day_of_week': current_day_of_week,
+#             'hour': current_hour,
+#             'genre_code': genre_categories.cat.codes[i]
+#         }
+#         for i, store in enumerate(stores)
+#     ]
+#     store_features_df = pd.DataFrame(store_features)
+
+#     # 推論スコアを計算
+#     store_scores = model.predict(store_features_df)
+#     store_scores = store_scores[:, 1]  # クラス1の確率を使用
+
+#     # 上位 5 件の店舗を選出
+#     store_score_pairs = zip(stores, store_scores)
+#     top_stores = sorted(store_score_pairs, key=lambda x: x[1], reverse=True)[:5]
+#     recommended_stores = [store for store, score in top_stores]
+
+#     # 結果をレンダリング
+#     return render(request, 'stores/ai_recommendations.html', {'stores': recommended_stores})
+
+# @login_required
+# def map_page(request):
+#     return render(request, 'stores/map.html')
+
+
+from django.core.serializers.json import DjangoJSONEncoder
+import json
+from .models import Store
+
+@login_required
+def map_page(request):
+    stores = Store.objects.all().values('name', 'latitude', 'longitude')
+    stores_json = json.dumps(list(stores), cls=DjangoJSONEncoder)
+    return render(request, 'stores/map.html', {'stores': stores_json})

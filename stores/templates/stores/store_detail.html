@@ -6,23 +6,76 @@
     <title>{{ store.name }} - 詳細</title>
     {% load static %}
     <style>
-        /* 必要なスタイルの定義 */
-        body { font-family: Arial, sans-serif; margin: 0; padding: 0; color: #333; background-color: #f8f8f8; }
-        header { text-align: center; padding: 1rem 0; background-color: #f8f8f8;  }
-        .container { width: 90%; margin: auto; padding: 1rem 0; }
-        .store-header, .store-info, .reviews-section { margin-bottom: 2rem; }
-        .store-image { width: 100%; max-width: 500px; margin: 0 auto; }
-        .store-image img { width: 100%; border-radius: 8px; }
-        .reviews-section h2, .store-info h2 { font-size: 1.5rem; color: #333; }
-        .review-item { background-color: #fff; padding: 1rem; margin-bottom: 1rem; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); }
-        .review-form { background-color: #fff; padding: 1rem; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); border-radius: 8px; }
-        .review-form h3 { font-size: 1.5rem; margin-bottom: 1rem; }
-        .review-form input[type="number"], .review-form textarea, .review-form button {
-            width: 100%; padding: 0.5rem; margin-bottom: 1rem; border: 1px solid #ddd; border-radius: 4px;
+        /* ベーススタイル */
+        body {
+            font-family: "Yu Gothic", "Hiragino Kaku Gothic Pro", Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            color: #333;
+            background-color: #f8f8f8;
+            line-height: 1.6;
         }
-        .review-form button { background-color: #333; color: #fff; border: none; cursor: pointer; }
-        .review-form button:hover { background-color: #555; }
 
+        header {
+            text-align: center;
+            padding: 20px;
+            /* background-color: #f7f7f7; */
+            /* border-bottom: 1px solid #ddd; */
+        }
+
+        header h1 {
+            font-size: 1.8rem;
+            font-weight: bold;
+            margin: 0;
+        }
+
+        .container {
+            max-width: 960px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        /* 商品画像 */
+        .store-image img {
+            width: 100%;
+            border-radius: 4px;
+            margin-bottom: 20px;
+            border: 1px solid #ddd;
+        }
+
+        /* 商品情報 */
+        .store-info {
+            border-top: 1px solid #ddd;
+            padding-top: 20px;
+            margin-top: 20px;
+        }
+
+        .store-info h2 {
+            font-size: 1.4rem;
+            margin-bottom: 10px;
+        }
+
+        .store-info p {
+            margin: 10px 0;
+        }
+
+        .store-info a {
+            color: #0078d4;
+            text-decoration: none;
+        }
+
+        .store-info a:hover {
+            text-decoration: underline;
+        }
+
+        /* Googleマップセクション */
+        .store-map {
+            margin-top: 30px;
+            border-top: 1px solid #ddd;
+            padding-top: 20px;
+        }
+
+        
         /* いいねボタンのデザイン */
         .like-container {
             display: flex;
@@ -50,6 +103,67 @@
         .like-button:hover .like-icon {
             color: #ff6b81;     /* ホバー時の色 */
         }
+
+        /* 口コミセクション */
+        .reviews-section {
+            margin-top: 40px;
+        }
+
+        .review-item {
+            border: 1px solid #ddd;
+            padding: 15px;
+            border-radius: 4px;
+            margin-bottom: 20px;
+            background-color: #fff;
+        }
+
+        /* 口コミフォーム */
+        .review-form {
+            margin-top: 40px;
+            border: 1px solid #ddd;
+            padding: 20px;
+            border-radius: 4px;
+            background-color: #fff;
+        }
+
+        .review-form h3 {
+            margin-bottom: 15px;
+        }
+
+        .review-form input[type="number"],
+        .review-form textarea,
+        .review-form button {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 15px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            font-size: 1rem;
+        }
+
+        .review-form button {
+            background-color: #0078d4;
+            color: #fff;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+        .review-form button:hover {
+            background-color: #005fa3;
+        }
+
+        .sort-form {
+            margin-bottom: 20px;
+        }
+
+        .sort-form select {
+            padding: 5px 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            font-size: 1rem;
+        }
+
+        
     </style>
 </head>
 <body>
@@ -63,60 +177,54 @@
                 <img src="{{ store.image.url }}" alt="{{ store.name }}">
             </div>
 
-            <!-- お店の基本情報と紹介 -->
+            <!-- お店の基本情報 -->
             <div class="store-info">
                 <h2>お店の紹介</h2>
                 <p>{{ store.description }}</p>
                 <p><strong>住所:</strong> {{ store.address }}</p>
                 <p><strong>営業時間:</strong> {{ store.hours }}</p>
                 <p><strong>ホームページ:</strong> <a href="{{ store.website }}" target="_blank">{{ store.website }}</a></p>
-                <!-- いいね機能 -->
-                <!-- <p><strong>いいね:</strong> <span id="like-count">{{ store.likes }}</span></p>
-                <button id="like-button">いいね</button> -->
             </div>
 
-            <!-- Googleマップのリンク -->
-            <div class="store-map">
+            <!-- Googleマップ -->
+            <!-- <div class="store-map">
                 <h2>アクセス</h2>
                 <p><a href="https://www.google.com/maps/search/?api=1&query={{ store.latitude }},{{ store.longitude }}" target="_blank">Googleマップで表示</a></p>
-            </div>
-            <!-- いいね表示 -->
-            <div class="like-container">
-                <h4>いいね数</h4>
-                <p></p>
-                <button id="like-button" class="like-button" {% if user_has_liked %}disabled{% endif %}>
-                    <span class="like-icon">👍</span> <!-- アイコン（絵文字）または画像を使用 -->
-                    <span id="like-count">{{ store.likes }}</span>
-                </button>
+            </div> -->
+            
+
+            <button id="like-button" class="like-button" {% if user_has_liked %}disabled{% endif %}>
+                <h2>いいね</h2>
+
+                <span class="like-icon">👍</span> <!-- アイコン（絵文字）または画像を使用 -->
+                <span id="like-count">{{ store.likes }}</span>
+            </button>
+            
+            <!-- Googleマップ -->
+            <div class="store-map">
+                <h2>アクセス</h2>
+                <iframe 
+                    src="https://www.google.com/maps/embed/v1/place?key=YOUR_API_KEY&q={{ store.latitude }},{{ store.longitude }}" 
+                    width="100%" 
+                    height="300" 
+                    style="border:0;" 
+                    allowfullscreen="" 
+                    loading="lazy">
+                </iframe>
             </div>
 
-            <script>
-                document.getElementById("like-button").addEventListener("click", function() {
-                    const url = "{% url 'like_store' store.id %}";
 
-                    fetch(url, {
-                        method: "POST",
-                        headers: {
-                            "X-CSRFToken": "{{ csrf_token }}",
-                            "Content-Type": "application/json"
-                        },
-                    })
-                    .then(response => response.json())
-                    .then(data => {
-                        if (data.liked) {
-                            // いいね数を更新
-                            document.getElementById("like-count").textContent = data.likes;
-                            // ボタンを無効化
-                            document.getElementById("like-button").disabled = true;
-                        } else {
-                            alert("すでにこのお店にいいねしています。");
-                        }
-                    })
-                    .catch(error => console.error("Error:", error));
-                });
-            </script>
-            <!-- 口コミセクション -->
-            <div class="reviews-section">
+            <!-- いいね機能 -->
+            <!-- <div class="like-container">
+                <span class="like-icon">👍</span>
+                <span id="like-count">{{ store.likes }}</span>
+                <button id="like-button" class="like-button" {% if user_has_liked %}disabled{% endif %}>いいね</button>
+            </div> -->
+
+            
+
+            <!-- 口コミ -->
+            <!-- <div class="reviews-section">
                 <h2>口コミ</h2>
                 {% for review in reviews %}
                     <div class="review-item">
@@ -127,10 +235,10 @@
                 {% empty %}
                     <p>まだ口コミがありません。</p>
                 {% endfor %}
-            </div>
+            </div> -->
 
             <!-- 口コミ投稿フォーム -->
-            <div class="review-form">
+            <!-- <div class="review-form">
                 <h3>口コミを投稿する</h3>
                 <form method="post" action="{% url 'store_detail' store.id %}">
                     {% csrf_token %}
@@ -142,7 +250,44 @@
                     
                     <button type="submit">投稿する</button>
                 </form>
-            </div>
+            </div> -->
+
+            <!-- 口コミ投稿フォーム -->
+<div class="review-form">
+    <h3>口コミを投稿する</h3>
+    <form method="post" action="{% url 'store_detail' store.id %}">
+        {% csrf_token %}
+        <label for="rating">評価 (1〜5):</label>
+        <input type="number" id="rating" name="rating" min="1" max="5" required>
+        
+        <label for="comment">コメント:</label>
+        <textarea id="comment" name="comment" rows="4" required></textarea>
+        
+        <button type="submit">投稿する</button>
+    </form>
+</div>
+
+<!-- 口コミ一覧 -->
+<div class="reviews-section">
+    <h2>口コミ</h2>
+    <form method="get" class="sort-form">
+        <label for="sort_order">並び順:</label>
+        <select id="sort_order" name="sort_order" onchange="this.form.submit()">
+            <option value="newest" {% if sort_order == 'newest' %}selected{% endif %}>新しい順</option>
+            <option value="oldest" {% if sort_order == 'oldest' %}selected{% endif %}>古い順</option>
+        </select>
+    </form>
+    {% for review in reviews %}
+        <div class="review-item">
+            <p><strong>{{ review.user.username }}:</strong> {{ review.comment }}</p>
+            <p>評価: {{ review.rating }} / 5</p>
+            <p>投稿日: {{ review.created_at }}</p>
+        </div>
+    {% empty %}
+        <p>まだ口コミがありません。</p>
+    {% endfor %}
+</div>
+
         </div>
     </main>
 </body>

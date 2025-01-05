@@ -35,10 +35,13 @@ class Store(models.Model):
     
     genre = models.CharField(max_length=100, choices=GENRE_CHOICES, blank=True, null=True)
     likes = models.PositiveIntegerField(default=0)  # いいねカウントの追加
+    favorite_users = models.ManyToManyField(User, related_name='favorite_stores')
 
 
     def __str__(self):
         return self.name
+
+
 
 class Like(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
@@ -66,3 +69,25 @@ class Review(models.Model):
 
     def __str__(self):
         return f'{self.store.name}のレビュー by {self.user.username}'
+
+
+from django.db import models
+from django.contrib.auth.models import User
+
+class UserInteraction(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    store = models.ForeignKey('Store', on_delete=models.CASCADE)
+    interaction_type = models.CharField(max_length=50)
+    timestamp = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.user.username} - {self.store.name} ({self.interaction_type})"
+
+
+class ViewLog(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    store = models.ForeignKey(Store, on_delete=models.CASCADE)
+    viewed_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.user.username} viewed {self.store.name} at {self.viewed_at}"

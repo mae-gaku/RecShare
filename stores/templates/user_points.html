@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+
+{% block content %}
+    <h2>ポイント管理</h2>
+    <p>現在のポイント: {{ profile.points }}</p>
+
+    {% if messages %}
+        <ul>
+            {% for message in messages %}
+                <li>{{ message }}</li>
+            {% endfor %}
+        </ul>
+    {% endif %}
+
+    <h3>獲得したポイント履歴</h3>
+    <ul>
+        {% for history in request.user.userpointhistory_set.all %}
+            <li>{{ history.store.name }} - {{ history.earned_at }}</li>
+        {% endfor %}
+    </ul>
+{% endblock %}

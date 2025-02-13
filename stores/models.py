@@ -5,6 +5,12 @@ import os
 import qrcode
 from django.conf import settings
 
+import uuid
+import qrcode
+from io import BytesIO
+from django.core.files.base import ContentFile
+from django.db import models
+from django.contrib.auth.models import User
 
 class Genre(models.Model):
     name = models.CharField(max_length=50, unique=True)
@@ -37,6 +43,23 @@ class Store(models.Model):
     likes = models.PositiveIntegerField(default=0)  # いいねカウントの追加
     favorite_users = models.ManyToManyField(User, related_name='favorite_stores')
 
+    #QR
+    qr_code = models.ImageField(upload_to="qrcodes/", null=True, blank=True)  # 追加
+    unique_id = models.CharField(max_length=255, unique=True, default=uuid.uuid4, editable=False)
+    # unique_id = models.CharField(max_length=255, unique=True, default=uuid.uuid4)
+    #\ unique_id = models.UUIDField(default=uuid.uuid4, unique=True)  # QRコード用の一意識別子
+
+    def generate_qr_code(self):
+        """ QRコードを生成し、画像として保存 """
+        qr = qrcode.make(f"https://example.com/scan/?store_id={self.unique_id}")
+        qr_io = BytesIO()
+        qr.save(qr_io, format='PNG')
+        self.qr_code.save(f'qr_{self.unique_id}.png', ContentFile(qr_io.getvalue()), save=False)
+
+    def save(self, *args, **kwargs):
+        if not self.qr_code:
+            self.generate_qr_code()
+        super().save(*args, **kwargs)
 
     def __str__(self):
         return self.name
@@ -91,3 +114,22 @@ class ViewLog(models.Model):
 
     def __str__(self):
         return f"{self.user.username} viewed {self.store.name} at {self.viewed_at}"
+
+
+class UserProfile(models.Model):
+    user = models.OneToOneField(User, on_delete=models.CASCADE)
+    points = models.IntegerField(default=0)
+
+    def __str__(self):
+        return f"{self.user.username} - {self.points} points"
+
+
+
+
+class UserPointHistory(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    store = models.ForeignKey(Store, on_delete=models.CASCADE)
+    earned_at = models.DateTimeField(auto_now_add=True)  # いつポイントを獲得したか
+
+    class Meta:
+        unique_together = ('user', 'store')  # 同じ店舗のQRコードを2回スキャンできないようにする

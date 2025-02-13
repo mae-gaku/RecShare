@@ -199,6 +199,32 @@
                 <span class="like-icon">👍</span> <!-- アイコン（絵文字）または画像を使用 -->
                 <span id="like-count">{{ store.likes }}</span>
             </button>
+
+            <script>
+                document.getElementById("like-button").addEventListener("click", function() {
+                    const url = "{% url 'like_store' store.id %}";
+
+                    fetch(url, {
+                        method: "POST",
+                        headers: {
+                            "X-CSRFToken": "{{ csrf_token }}",
+                            "Content-Type": "application/json"
+                        },
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.liked) {
+                            // いいね数を更新
+                            document.getElementById("like-count").textContent = data.likes;
+                            // ボタンを無効化
+                            document.getElementById("like-button").disabled = true;
+                        } else {
+                            alert("すでにこのお店にいいねしています。");
+                        }
+                    })
+                    .catch(error => console.error("Error:", error));
+                });
+            </script>
             
             <!-- Googleマップ -->
             <div class="store-map">

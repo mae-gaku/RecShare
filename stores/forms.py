@@ -6,6 +6,7 @@ class StoreForm(forms.ModelForm):
     class Meta:
         model = Store
         fields = ['name', 'description', 'website', 'image']
+        
 
 class ReviewForm(forms.ModelForm):
     class Meta:

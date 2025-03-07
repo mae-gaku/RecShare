@@ -27,7 +27,8 @@ urlpatterns = [
     path('ai_recommendations/', views.predicted_stores, name='predicted_stores'),
     path('map/', views.map_page, name='map_page'),
     path('points/', views.user_points, name='user_points'),
-    path('scan/', views.scan_qr_code, name='scan_qr_code'),
+    # path('scan/', views.scan_qr_code, name='scan_qr_code'),
+    path('scan_qr/<int:store_id>/', views.scan_qr_code, name='scan_qr_code'),  # ← 追加
 
 ]
 

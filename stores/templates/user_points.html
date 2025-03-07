@@ -1,21 +1,48 @@
 {% extends "base.html" %}
+{% load humanize %}  {# 日付フォーマットを扱いやすくするためのフィルター #}
 
 {% block content %}
-    <h2>ポイント管理</h2>
-    <p>現在のポイント: {{ profile.points }}</p>
+<div class="container mx-auto p-6">
+    <h2 class="text-2xl font-bold mb-4">ポイント管理</h2>
+
+    <div class="bg-white dark:bg-gray-800 shadow-md rounded-lg p-6 mb-6">
+        <h3 class="text-lg font-semibold mb-2">現在のポイント</h3>
+        <p class="text-3xl font-bold text-blue-600 dark:text-blue-400">{{ profile.points|intcomma }}</p>
+    </div>
 
     {% if messages %}
-        <ul>
+        <div class="mb-6">
             {% for message in messages %}
-                <li>{{ message }}</li>
+                <div class="bg-green-100 dark:bg-green-800 text-green-800 dark:text-green-200 p-4 rounded-lg mb-2">
+                    {{ message }}
+                </div>
             {% endfor %}
-        </ul>
+        </div>
     {% endif %}
 
-    <h3>獲得したポイント履歴</h3>
-    <ul>
-        {% for history in request.user.userpointhistory_set.all %}
-            <li>{{ history.store.name }} - {{ history.earned_at }}</li>
-        {% endfor %}
-    </ul>
+    <h3 class="text-xl font-semibold mb-3">獲得したポイント履歴</h3>
+    <div class="overflow-x-auto">
+        <table class="min-w-full bg-white dark:bg-gray-800 shadow-md rounded-lg">
+            <thead>
+                <tr class="bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-200">
+                    <th class="py-2 px-4 text-left">店舗名</th>
+                    <th class="py-2 px-4 text-left">獲得日</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for history in point_history %}
+                    <tr class="border-t border-gray-300 dark:border-gray-600">
+                        <td class="py-2 px-4">{{ history.store.name }}</td>
+                        <td class="py-2 px-4">{{ history.earned_at|date:"Y/m/d H:i" }}</td>
+                    </tr>
+                {% empty %}
+                    <tr>
+                        <td class="py-2 px-4 text-center text-gray-500 dark:text-gray-400" colspan="2">ポイント履歴がありません</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+            
+        </table>
+    </div>
+</div>
 {% endblock %}

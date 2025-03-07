@@ -35,8 +35,11 @@ from django.contrib import messages
 from .forms import StoreGroupForm
 from .models import StoreGroup
 
-
-
+from django.shortcuts import render, redirect, get_object_or_404
+from django.contrib.auth.decorators import login_required
+from django.contrib import messages
+from .models import UserProfile, UserPointHistory, Store  # ← Storeモデルが必要
+from django.utils import timezone  # ← これを追加！
 
 def home(request):
     stores = Store.objects.all()  # `stores`をhome.htmlに渡す
@@ -99,14 +102,65 @@ def register_store(request):
     return render(request, 'stores/register_store.html', {'form': form})
 
 
+# def store_detail(request, store_id):
+#     store = get_object_or_404(Store, pk=store_id)
+#     reviews = store.reviews.all()  # お店に関連する全てのレビューを取得
+
+#     # おすすめグループを取得
+#     recommended_groups = store.store_groups.all()
+
+#     # ユーザーがこのお店に「いいね」しているかどうかをチェック
+#     user_has_liked = Like.objects.filter(store=store, user=request.user).exists() if request.user.is_authenticated else False
+
+#     if request.method == 'POST':
+#         form = ReviewForm(request.POST)
+#         if form.is_valid():
+#             review = form.save(commit=False)
+#             review.store = store
+#             review.user = request.user  # ログインしているユーザーを関連付け
+#             review.save()
+#             return redirect('store_detail', store_id=store.id)
+#     else:
+#         form = ReviewForm()
+
+#     # インタラクションの記録
+#     # if request.user.is_authenticated:
+#     #     UserInteraction.objects.create(
+#     #         user=request.user,
+#     #         store=store,
+#     #         interaction_type='view'
+#     #     )
+
+#     # 閲覧記録を保存
+#     from django.utils.timezone import now
+#     if request.user.is_authenticated:
+#         ViewLog.objects.create(user=request.user, store=store, viewed_at=now())
+
+#     sort_order = request.GET.get('sort_order', 'newest')  # デフォルトは新しい順
+#     if sort_order == 'oldest':
+#         reviews = Review.objects.filter(store=store).order_by('created_at')  # 古い順
+#     else:
+#         reviews = Review.objects.filter(store=store).order_by('-created_at')  # 新しい順
+
+
+    
+#     context = {
+#         'store': store,
+#         'reviews': reviews,
+#         'form': form,
+#         'user_has_liked': user_has_liked,  # 「いいね」状態をテンプレートに渡す
+#         'recommended_groups': recommended_groups,  # おすすめグループをテンプレートに渡す
+#         'sort_order': sort_order,
+#     }
+#     return render(request, 'stores/store_detail.html', context)
+
+from django.utils.timezone import now
+from .models import UserPoint  # UserPointモデルをインポート
+
 def store_detail(request, store_id):
     store = get_object_or_404(Store, pk=store_id)
-    reviews = store.reviews.all()  # お店に関連する全てのレビューを取得
-
-    # おすすめグループを取得
+    reviews = store.reviews.all()  
     recommended_groups = store.store_groups.all()
-
-    # ユーザーがこのお店に「いいね」しているかどうかをチェック
     user_has_liked = Like.objects.filter(store=store, user=request.user).exists() if request.user.is_authenticated else False
 
     if request.method == 'POST':
@@ -114,43 +168,54 @@ def store_detail(request, store_id):
         if form.is_valid():
             review = form.save(commit=False)
             review.store = store
-            review.user = request.user  # ログインしているユーザーを関連付け
+            review.user = request.user
             review.save()
             return redirect('store_detail', store_id=store.id)
     else:
         form = ReviewForm()
 
-    # インタラクションの記録
-    # if request.user.is_authenticated:
-    #     UserInteraction.objects.create(
-    #         user=request.user,
-    #         store=store,
-    #         interaction_type='view'
-    #     )
+     # ポイント加算処理（1日に1回まで）
+    # profile, _ = UserProfile.objects.get_or_create(user=request.user)
+    # today = timezone.now().date()
+
+    # # すでに今日のポイントを獲得していないか確認
+    # if not UserPointHistory.objects.filter(user=request.user, store=store, earned_at__date=today).exists():
+    #     UserPointHistory.objects.create(user=request.user, store=store)
+    #     profile.points += 1
+    #     profile.save()
+
+    # ユーザーのプロフィールを取得 or 作成
+    profile, _ = UserProfile.objects.get_or_create(user=request.user)
+
+    # ✅ 1ヶ月経過していたらポイントをリセット
+    profile.reset_points_if_needed()
+
+    # ✅ 今日のポイントが加算されていなければ加算
+    today = timezone.now().date()
+    if not UserPointHistory.objects.filter(user=request.user, store=store, earned_at__date=today).exists():
+        UserPointHistory.objects.create(user=request.user, store=store)
+        profile.points += 1
+        profile.save()
 
     # 閲覧記録を保存
-    from django.utils.timezone import now
     if request.user.is_authenticated:
         ViewLog.objects.create(user=request.user, store=store, viewed_at=now())
 
-    sort_order = request.GET.get('sort_order', 'newest')  # デフォルトは新しい順
+    sort_order = request.GET.get('sort_order', 'newest')
     if sort_order == 'oldest':
-        reviews = Review.objects.filter(store=store).order_by('created_at')  # 古い順
+        reviews = reviews.order_by('created_at')
     else:
-        reviews = Review.objects.filter(store=store).order_by('-created_at')  # 新しい順
+        reviews = reviews.order_by('-created_at')
 
-
-    
     context = {
         'store': store,
         'reviews': reviews,
         'form': form,
-        'user_has_liked': user_has_liked,  # 「いいね」状態をテンプレートに渡す
-        'recommended_groups': recommended_groups,  # おすすめグループをテンプレートに渡す
+        'user_has_liked': user_has_liked,
+        'recommended_groups': recommended_groups,
         'sort_order': sort_order,
     }
     return render(request, 'stores/store_detail.html', context)
-
 
 
 def store_list(request):
@@ -752,47 +817,84 @@ def predicted_stores(request):
 
 
 
-from django.shortcuts import render
-from django.contrib.auth.decorators import login_required
-from .models import UserProfile
+# from django.shortcuts import render
+# from django.contrib.auth.decorators import login_required
+# from .models import UserProfile
 
-@login_required
-def user_points(request):
-    profile, created = UserProfile.objects.get_or_create(user=request.user)  # ない場合は作成
+# @login_required
+# def user_points(request):
+#     profile, created = UserProfile.objects.get_or_create(user=request.user)  # ない場合は作成
 
-    return render(request, 'user_points.html', {'profile': profile})
+#     return render(request, 'user_points.html', {'profile': profile})
 
 
 
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
-from .models import Store, UserProfile, UserPointHistory
+from .models import UserProfile, UserPointHistory, Store  # ← Storeモデルが必要
 
 @login_required
-def scan_qr_code(request):
-    store_id = request.GET.get('store_id')
-    if not store_id:
-        messages.error(request, "無効なQRコードです。")
-        return redirect('user_points')
-
-    try:
-        store = Store.objects.get(unique_id=store_id)
-    except Store.DoesNotExist:
-        messages.error(request, "店舗が見つかりません。")
-        return redirect('user_points')
-
-    # すでにこの店舗でポイントを獲得しているか確認
-    if UserPointHistory.objects.filter(user=request.user, store=store).exists():
-        messages.warning(request, "この店舗のQRコードはすでにスキャンしています。")
-        return redirect('user_points')
-
-    # ユーザーのポイントを増やし、履歴を追加
+def scan_qr_code(request, store_id):
+    """
+    QRコードをスキャンすると、ポイントを加算し履歴を記録する
+    """
+    store = get_object_or_404(Store, id=store_id)  
     profile, created = UserProfile.objects.get_or_create(user=request.user)
+
+    # 1ポイント加算
     profile.points += 1
     profile.save()
 
+    # ポイント履歴を記録
     UserPointHistory.objects.create(user=request.user, store=store)
 
-    messages.success(request, f"{store.name} のQRコードをスキャンしました！1ポイント獲得！")
+    messages.success(request, f"{store.name} でポイントを獲得しました！")
+
+    # ユーザーのポイントページへリダイレクト
     return redirect('user_points')
+
+
+# ユーザーのポイントページ
+@login_required
+def user_points(request):
+    profile, created = UserProfile.objects.get_or_create(user=request.user)
+
+    # ユーザーのポイント履歴を取得
+    point_history = UserPointHistory.objects.filter(user=request.user).order_by('-earned_at')
+
+    return render(request, 'user_points.html', {
+        'profile': profile,
+        'point_history': point_history  # ← これをテンプレートで使う
+    })
+
+
+
+# @login_required
+# def scan_qr_code(request):
+#     store_id = request.GET.get('store_id')
+#     if not store_id:
+#         messages.error(request, "無効なQRコードです。")
+#         return redirect('user_points')
+
+#     try:
+#         store = Store.objects.get(unique_id=store_id)
+#     except Store.DoesNotExist:
+#         messages.error(request, "店舗が見つかりません。")
+#         return redirect('user_points')
+
+#     # すでにこの店舗でポイントを獲得しているか確認
+#     if UserPointHistory.objects.filter(user=request.user, store=store).exists():
+#         messages.warning(request, "この店舗のQRコードはすでにスキャンしています。")
+#         return redirect('user_points')
+
+#     # ユーザーのポイントを増やし、履歴を追加
+#     profile, created = UserProfile.objects.get_or_create(user=request.user)
+#     profile.points += 1
+#     profile.save()
+
+#     UserPointHistory.objects.create(user=request.user, store=store)
+
+#     messages.success(request, f"{store.name} のQRコードをスキャンしました！1ポイント獲得！")
+#     return redirect('user_points')
+
